@@ -1,0 +1,35 @@
+{
+  "_comment": "MCP Configuration for civic-ai-tools-example",
+  "_structure_note": "This file assumes the following directory structure:",
+  "_structure": [
+    "/Users/nathanstorey/Code/",
+    "  ├── civic-ai-tools/          # Infrastructure library",
+    "  ├── opengov-mcp-server/      # OpenGov MCP Server",
+    "  └── civic-ai-tools-example/  # This project (YOU ARE HERE)"
+  ],
+  "_paths_note": "All paths are relative to THIS file's location (.cursor/mcp.json)",
+
+  "mcpServers": {
+    "opengov": {
+      "command": "node",
+      "args": ["../../opengov-mcp-server/dist/index.js"],
+      "env": {
+        "DEFAULT_DOMAIN": "data.cityofnewyork.us",
+        "SOCRATA_APP_TOKEN": "",
+        "PORT": "10000",
+        "CACHE_ENABLED": "true",
+        "LOG_LEVEL": "info"
+      }
+    },
+    "data-commons": {
+      "command": "datacommons-mcp",
+      "args": ["serve", "--stdio"],
+      "env": {
+        "DC_API_ROOT": "https://datacommons.org"
+      }
+    }
+  },
+  "skills": [
+    "../../civic-ai-tools/skills/opengov-mcp-companion"
+  ]
+}
