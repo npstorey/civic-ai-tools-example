@@ -7,22 +7,22 @@ This guide walks you through setting up the civic-ai-tools-example project to wo
 ```bash
 git clone https://github.com/npstorey/civic-ai-tools-example.git
 cd civic-ai-tools-example
-./scripts/setup.sh
 
-# Set up MCP config files (required)
-cp .mcp.json.example .mcp.json
-cp .cursor/mcp.json.example .cursor/mcp.json
-
-# Configure API keys (see "API Keys Configuration" below)
+# Optional: Set up API keys first (for higher rate limits)
 cp .env.example .env
-# Edit .mcp.json to add your API keys
+# Edit .env with your API keys
+
+# Run setup
+./scripts/setup.sh
 ```
 
 The setup script will:
 1. Check prerequisites (Node.js, Python 3.11+, git)
 2. Clone and build the OpenGov MCP server into `.mcp-servers/`
 3. Install the `datacommons-mcp` Python package via uv
-4. Verify MCP configuration files
+4. **Auto-generate MCP config files** (`.mcp.json` and `.cursor/mcp.json`)
+   - Reads API keys from `.env` if present
+   - Uses absolute paths for Cursor (required for reliability)
 
 ---
 
@@ -59,11 +59,13 @@ After running setup:
 civic-ai-tools-example/
 ├── .mcp-servers/
 │   └── opengov-mcp-server/    # Cloned & built by setup script
-├── .mcp.json                   # Claude Code CLI config
+├── .mcp.json                   # Claude Code CLI config (auto-generated, gitignored)
+├── .mcp.json.example           # Template for Claude Code config
 ├── .cursor/
-│   └── mcp.json               # Cursor IDE config
+│   ├── mcp.json               # Cursor IDE config (auto-generated, gitignored)
+│   └── mcp.json.example       # Template for Cursor config
 ├── .env.example               # API keys template
-├── .env                       # Your API keys (create from .env.example)
+├── .env                       # Your API keys (gitignored)
 ├── docs/
 │   └── opengov-skill.md       # OpenGov query guidance
 ├── scripts/
@@ -72,20 +74,23 @@ civic-ai-tools-example/
 └── CLAUDE.md                  # Claude Code instructions
 ```
 
+**Note:** The `.mcp.json`, `.cursor/mcp.json`, and `.env` files are gitignored because they contain API keys and machine-specific paths.
+
 ---
 
 ## Tool-Specific Setup
 
 ### Cursor IDE
 
-1. Run `./scripts/setup.sh`
+1. Run `./scripts/setup.sh` (auto-generates `.cursor/mcp.json` with absolute paths)
 2. Open this folder in Cursor
-3. MCP servers load automatically from `.cursor/mcp.json`
-4. Start asking questions about NYC data
+3. MCP servers should load automatically
+4. If servers don't appear, fully quit Cursor (Cmd+Q) and reopen
+5. Start asking questions about NYC data
 
 ### Claude Code CLI
 
-1. Run `./scripts/setup.sh`
+1. Run `./scripts/setup.sh` (auto-generates `.mcp.json`)
 2. Start Claude Code:
    ```bash
    claude
@@ -201,7 +206,7 @@ The MCP servers will automatically load these from the project root `.env` file.
 
 ## Troubleshooting
 
-### "MCP server not found"
+### "MCP server not found" / "Cannot find module"
 
 1. Run the setup script:
    ```bash
@@ -219,6 +224,11 @@ The MCP servers will automatically load these from the project root `.env` file.
    uv tool install datacommons-mcp
    ```
 2. Add `~/.local/bin` to your PATH if needed
+3. Re-run setup to update configs with the correct path:
+   ```bash
+   rm .mcp.json .cursor/mcp.json
+   ./scripts/setup.sh
+   ```
 
 ### Claude Code doesn't show MCP tools
 
@@ -228,22 +238,65 @@ The MCP servers will automatically load these from the project root `.env` file.
 
 ### Cursor doesn't load MCP servers
 
-1. Verify `.cursor/mcp.json` exists
-2. Restart Cursor
-3. Check Cursor's MCP settings panel
+**Common issues and solutions:**
+
+1. **Server shows "connected" but no tools appear:**
+   - Fully quit Cursor (Cmd+Q on Mac, not just close window)
+   - Reopen Cursor and the project
+
+2. **"Cannot find module" error in logs:**
+   - This usually means the path in `.cursor/mcp.json` is incorrect
+   - The setup script generates absolute paths which work reliably
+   - Re-run setup to regenerate:
+     ```bash
+     rm .cursor/mcp.json
+     ./scripts/setup.sh
+     ```
+
+3. **Server connects then immediately disconnects:**
+   - Check Cursor's MCP logs: Help → Toggle Developer Tools → Console
+   - Look for path-related errors
+   - Ensure you're using absolute paths (the setup script does this automatically)
+
+4. **"Request timed out" errors:**
+   - Fully quit and restart Cursor
+   - If persists, clear Cursor's MCP cache:
+     ```bash
+     rm -rf ~/Library/Application\ Support/Cursor/User/globalStorage/mcp-*
+     ```
+
+**Why Cursor needs absolute paths:**
+
+Unlike Claude Code CLI which runs from the project directory, Cursor's MCP client may resolve relative paths from a different working directory. Using absolute paths in `.cursor/mcp.json` ensures the MCP server is always found correctly. The setup script handles this automatically.
+
+**Manually checking your Cursor config:**
+
+Your `.cursor/mcp.json` should have paths like:
+```json
+{
+  "args": ["/Users/yourname/path/to/civic-ai-tools-example/.mcp-servers/opengov-mcp-server/dist/index.js"]
+}
+```
+
+NOT relative paths like:
+```json
+{
+  "args": [".mcp-servers/opengov-mcp-server/dist/index.js"]
+}
+```
 
 ---
 
 ## Files Reference
 
-| File | Purpose |
-|------|---------|
-| `.mcp.json.example` | MCP config template for Claude Code CLI |
-| `.mcp.json` | Your MCP config with API keys (not committed) |
-| `.cursor/mcp.json.example` | MCP config template for Cursor IDE |
-| `.cursor/mcp.json` | Your Cursor MCP config (not committed) |
-| `.env.example` | API keys template |
-| `.env` | Your API keys (not committed) |
-| `scripts/setup.sh` | Automated setup script |
-| `docs/opengov-skill.md` | Detailed OpenGov query guidance |
-| `CLAUDE.md` | Instructions for Claude Code |
+| File | Purpose | Generated By |
+|------|---------|--------------|
+| `.mcp.json.example` | MCP config template for Claude Code CLI | Committed to repo |
+| `.mcp.json` | Your MCP config (gitignored) | `setup.sh` auto-generates |
+| `.cursor/mcp.json.example` | MCP config template for Cursor IDE | Committed to repo |
+| `.cursor/mcp.json` | Your Cursor MCP config with absolute paths (gitignored) | `setup.sh` auto-generates |
+| `.env.example` | API keys template | Committed to repo |
+| `.env` | Your API keys (gitignored) | Copy from `.env.example` |
+| `scripts/setup.sh` | Automated setup script | Committed to repo |
+| `docs/opengov-skill.md` | Detailed OpenGov query guidance | Committed to repo |
+| `CLAUDE.md` | Instructions for Claude Code | Committed to repo |

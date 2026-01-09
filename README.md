@@ -10,11 +10,16 @@ cd civic-ai-tools-example
 ./scripts/setup.sh
 ```
 
+The setup script automatically:
+- Builds the OpenGov MCP server
+- Installs Data Commons MCP
+- Generates config files for both Cursor and Claude Code
+
 Then:
-- **Cursor**: Open the folder in Cursor
+- **Cursor**: Open the folder in Cursor (restart Cursor if servers don't appear)
 - **Claude Code**: Run `claude` and approve the MCP servers
 
-See [SETUP.md](SETUP.md) for detailed instructions.
+See [SETUP.md](SETUP.md) for detailed instructions and troubleshooting.
 
 ## What's Included
 

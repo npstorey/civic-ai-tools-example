@@ -160,21 +160,53 @@ else
     fi
 fi
 
-# Step 4: Verify MCP configuration files
-print_step "Checking MCP configuration files..."
+# Step 4: Generate MCP configuration files
+print_step "Setting up MCP configuration files..."
 
-# Claude Code CLI config
-if [ -f "$PROJECT_DIR/.mcp.json" ]; then
-    echo -e "${GREEN}[OK]${NC} .mcp.json exists (for Claude Code CLI)"
-else
-    print_warning ".mcp.json not found - Claude Code CLI won't have MCP access"
+# Load API keys from .env if it exists
+SOCRATA_TOKEN=""
+DC_KEY=""
+if [ -f "$PROJECT_DIR/.env" ]; then
+    echo "Loading API keys from .env file..."
+    # Source the .env file to get variables
+    set -a
+    source "$PROJECT_DIR/.env" 2>/dev/null || true
+    set +a
+    SOCRATA_TOKEN="${SOCRATA_APP_TOKEN:-}"
+    DC_KEY="${DC_API_KEY:-}"
 fi
 
-# Cursor IDE config
-if [ -f "$PROJECT_DIR/.cursor/mcp.json" ]; then
-    echo -e "${GREEN}[OK]${NC} .cursor/mcp.json exists (for Cursor IDE)"
+# Use placeholder if no token found
+[ -z "$SOCRATA_TOKEN" ] && SOCRATA_TOKEN="YOUR_SOCRATA_TOKEN_HERE"
+[ -z "$DC_KEY" ] && DC_KEY="YOUR_DC_API_KEY_HERE"
+
+# Find datacommons-mcp path
+DATACOMMONS_PATH=$(command -v datacommons-mcp 2>/dev/null || echo "datacommons-mcp")
+
+# Generate Claude Code CLI config (.mcp.json)
+if [ -f "$PROJECT_DIR/.mcp.json" ]; then
+    echo -e "${GREEN}[OK]${NC} .mcp.json already exists (for Claude Code CLI)"
 else
-    print_warning ".cursor/mcp.json not found - Cursor IDE won't have MCP access"
+    echo "Creating .mcp.json for Claude Code CLI..."
+    sed -e "s|__SOCRATA_APP_TOKEN__|$SOCRATA_TOKEN|g" \
+        -e "s|__DC_API_KEY__|$DC_KEY|g" \
+        -e "s|__DATACOMMONS_MCP_PATH__|$DATACOMMONS_PATH|g" \
+        "$PROJECT_DIR/.mcp.json.example" > "$PROJECT_DIR/.mcp.json"
+    print_success "Created .mcp.json"
+fi
+
+# Generate Cursor IDE config (.cursor/mcp.json) - requires absolute paths
+mkdir -p "$PROJECT_DIR/.cursor"
+if [ -f "$PROJECT_DIR/.cursor/mcp.json" ]; then
+    echo -e "${GREEN}[OK]${NC} .cursor/mcp.json already exists (for Cursor IDE)"
+else
+    echo "Creating .cursor/mcp.json for Cursor IDE (with absolute paths)..."
+    sed -e "s|__PROJECT_DIR__|$PROJECT_DIR|g" \
+        -e "s|__SOCRATA_APP_TOKEN__|$SOCRATA_TOKEN|g" \
+        -e "s|__DC_API_KEY__|$DC_KEY|g" \
+        -e "s|__DATACOMMONS_MCP_PATH__|$DATACOMMONS_PATH|g" \
+        "$PROJECT_DIR/.cursor/mcp.json.example" > "$PROJECT_DIR/.cursor/mcp.json"
+    print_success "Created .cursor/mcp.json (with absolute paths)"
 fi
 
 # Step 5: Data Commons API Key
@@ -201,14 +233,19 @@ if [ ${#ERRORS[@]} -eq 0 ]; then
     echo "Project structure:"
     echo "  $PROJECT_DIR/"
     echo "  ├── .mcp-servers/opengov-mcp-server/  (cloned & built)"
-    echo "  ├── .mcp.json                         (Claude Code config)"
-    echo "  └── .cursor/mcp.json                  (Cursor config)"
+    echo "  ├── .mcp.json                         (Claude Code config - auto-generated)"
+    echo "  └── .cursor/mcp.json                  (Cursor config - auto-generated with absolute paths)"
     echo ""
     echo "Next steps:"
+    echo ""
+    echo "  1. Add your API keys to .env (optional but recommended):"
+    echo "     cp .env.example .env"
+    echo "     # Edit .env with your API keys, then re-run ./scripts/setup.sh"
     echo ""
     echo "  For Cursor IDE:"
     echo "    1. Open this folder in Cursor"
     echo "    2. MCP servers will load automatically"
+    echo "    3. If servers don't appear, restart Cursor (Cmd+Q then reopen)"
     echo ""
     echo "  For Claude Code CLI:"
     echo "    1. Run: claude"

@@ -6,16 +6,17 @@
       "args": [".mcp-servers/opengov-mcp-server/dist/index.js"],
       "env": {
         "DEFAULT_DOMAIN": "data.cityofnewyork.us",
+        "SOCRATA_APP_TOKEN": "__SOCRATA_APP_TOKEN__",
         "CACHE_ENABLED": "true",
         "LOG_LEVEL": "info"
       }
     },
     "data-commons": {
       "type": "stdio",
-      "command": "datacommons-mcp",
-      "args": ["serve", "stdio"],
+      "command": "__DATACOMMONS_MCP_PATH__",
+      "args": ["serve", "--skip-api-key-validation", "stdio"],
       "env": {
-        "DC_API_ROOT": "https://datacommons.org"
+        "DC_API_KEY": "__DC_API_KEY__"
       }
     }
   }
