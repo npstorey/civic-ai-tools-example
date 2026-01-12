@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Setup script for civic-ai-tools-example
+# Setup script for civic-ai-tools
 # This script prepares your environment for using MCP servers with Cursor IDE or Claude Code CLI
 #
 

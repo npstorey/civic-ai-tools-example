@@ -1,20 +1,25 @@
 # Setup Guide
 
-This guide walks you through setting up the civic-ai-tools-example project to work with **Cursor IDE** or **Claude Code CLI**.
+This guide walks you through setting up the civic-ai-tools project to work with **Cursor IDE** or **Claude Code CLI**.
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/npstorey/civic-ai-tools-example.git
-cd civic-ai-tools-example
+# 1. Clone the repository
+git clone https://github.com/npstorey/civic-ai-tools.git
+cd civic-ai-tools
 
-# Optional: Set up API keys first (for higher rate limits)
+# 2. Set up your API keys (recommended)
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env and add your API keys:
+#   - SOCRATA_APP_TOKEN from https://data.cityofnewyork.us/profile/edit/developer_settings
+#   - DC_API_KEY from https://apikeys.datacommons.org/
 
-# Run setup
+# 3. Run the setup script
 ./scripts/setup.sh
 ```
+
+**Important:** Set up your `.env` file with API keys *before* running the setup script. The script reads your keys from `.env` and bakes them into the generated config files (`.mcp.json` and `.cursor/mcp.json`). Without this step, you'll get placeholder values and lower rate limits.
 
 The setup script will:
 1. Check prerequisites (Node.js, Python 3.11+, git)
@@ -23,6 +28,55 @@ The setup script will:
 4. **Auto-generate MCP config files** (`.mcp.json` and `.cursor/mcp.json`)
    - Reads API keys from `.env` if present
    - Uses absolute paths for Cursor (required for reliability)
+
+### Setup Script Details
+
+Here's exactly what `scripts/setup.sh` does at each step:
+
+#### Step 1: Check Prerequisites
+
+Verifies these tools are installed on your system:
+- **Node.js** and **npm** – required to build the OpenGov MCP server
+- **git** – required to clone the MCP server repository
+- **Python 3** – checks version and warns if below 3.11 (required by datacommons-mcp)
+- **uv** – optional but recommended Python package manager (warns if missing but continues)
+
+If any required tool (node, npm, git, python3) is missing, the script exits with an error.
+
+#### Step 2: Set Up OpenGov MCP Server
+
+1. Creates `.mcp-servers/` directory if it doesn't exist
+2. Clones `https://github.com/npstorey/opengov-mcp-server.git` into `.mcp-servers/opengov-mcp-server/` (skips if already cloned)
+3. Runs `npm install` to install Node.js dependencies
+4. Runs `npm run build` to compile TypeScript to JavaScript in `dist/`
+
+#### Step 3: Install datacommons-mcp
+
+Installs the `datacommons-mcp` Python package globally:
+- First attempts `uv tool install datacommons-mcp`
+- Falls back to `pip3 install datacommons-mcp` if uv fails or isn't installed
+- Verifies the `datacommons-mcp` command is available in PATH
+
+#### Step 4: Generate MCP Configuration Files
+
+1. Loads API keys from `.env` file if it exists (looks for `SOCRATA_APP_TOKEN` and `DC_API_KEY`)
+2. Uses placeholder values if no `.env` found or keys are missing
+3. Finds the installed `datacommons-mcp` executable path
+4. Creates `.mcp.json` from `.mcp.json.example` template, substituting:
+   - API tokens
+   - Path to datacommons-mcp executable
+5. Creates `.cursor/mcp.json` from `.cursor/mcp.json.example`, substituting:
+   - API tokens
+   - Path to datacommons-mcp executable
+   - **Converts relative paths to absolute paths** (Cursor requires this)
+
+#### Step 5: Verify Data Commons API Key
+
+Checks if `DC_API_KEY` environment variable is set and warns if missing (Data Commons will still work but with lower rate limits).
+
+#### Step 6: Print Summary
+
+Displays what was created and provides next steps for using the MCP servers with Cursor or Claude Code CLI.
 
 ---
 
@@ -56,7 +110,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 After running setup:
 
 ```
-civic-ai-tools-example/
+civic-ai-tools/
 ├── .mcp-servers/
 │   └── opengov-mcp-server/    # Cloned & built by setup script
 ├── .mcp.json                   # Claude Code CLI config (auto-generated, gitignored)
@@ -204,6 +258,35 @@ The MCP servers will automatically load these from the project root `.env` file.
 
 ---
 
+## Security Note
+
+### About These API Keys
+
+The API keys used in this project are **low-risk, public data keys**:
+
+| Key | What It Protects | Risk If Exposed |
+|-----|------------------|-----------------|
+| **Socrata App Token** | NYC Open Data (public data) | Low - only affects rate limits. No private data access, no billing. |
+| **Data Commons API Key** | Google Data Commons (public data) | Low - only affects rate limits. No private data access, no billing. |
+
+These keys exist primarily for **rate limiting and usage tracking**, not for protecting sensitive data or billing. The underlying data is publicly accessible.
+
+### Best Practices
+
+1. **Never commit keys to git** - The `.env` and generated config files are already gitignored
+2. **Don't share your `.env` or config files** - Each user should generate their own
+3. **AI assistants can see your keys** - When tools like Claude Code or Cursor read your config files, they see the contents including API keys. If you have training data sharing enabled, this content could theoretically be included.
+4. **For sensitive keys, use different approaches** - If you ever work with keys that have billing implications or access private data (AWS, payment processors, etc.), use environment variables at the shell level or a secrets manager instead of baking them into config files.
+
+### Why This Approach Is Acceptable Here
+
+For public data APIs with no billing or private data risk, the current setup follows standard practices:
+- Keys stored in gitignored files
+- Templates committed without real keys
+- Each user generates their own config locally
+
+---
+
 ## Troubleshooting
 
 ### "MCP server not found" / "Cannot find module"
@@ -274,7 +357,7 @@ Unlike Claude Code CLI which runs from the project directory, Cursor's MCP clien
 Your `.cursor/mcp.json` should have paths like:
 ```json
 {
-  "args": ["/Users/yourname/path/to/civic-ai-tools-example/.mcp-servers/opengov-mcp-server/dist/index.js"]
+  "args": ["/Users/yourname/path/to/civic-ai-tools/.mcp-servers/opengov-mcp-server/dist/index.js"]
 }
 ```
 

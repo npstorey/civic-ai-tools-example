@@ -40,6 +40,28 @@ This example project was originally designed to work with a sibling `civic-ai-to
 
 ## Future Improvements
 
+### Simplify opengov-mcp Installation
+
+**Current state:** Users must clone and build opengov-mcp-server locally via the setup script.
+
+**Goal:** Allow installation via a single command like `npm install -g` or `npx`.
+
+**Options:**
+
+1. **Publish to npm** (recommended)
+   - Natural fit since it's a Node.js/TypeScript project
+   - Users could run `npx opengov-mcp-server` directly
+   - Setup script would simplify significantly
+   - Requires: npm account, proper package.json metadata, publish workflow
+
+2. **Rewrite in Python**
+   - Would allow `uv tool install` / `pip install` like datacommons-mcp
+   - More consistent with Python-based MCP ecosystem
+   - Significant effort to rewrite
+   - Consider if: Python rewrite offers other benefits (easier contributions, better library ecosystem for civic data)
+
+**Recommendation:** Start with npm publishing. Evaluate Python rewrite only if there's a compelling reason beyond installation convenience.
+
 ### Add More Skills
 - Consider adding a Data Commons companion skill (`docs/datacommons-skill.md`)
 - Document common query patterns for other Socrata portals (Chicago, SF, etc.)

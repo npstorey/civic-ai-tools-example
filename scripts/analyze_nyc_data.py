@@ -9,7 +9,7 @@ Directory Structure:
     Code/
     ├── civic-ai-tools/          # Infrastructure (separate repo)
     ├── opengov-mcp-server/      # MCP server (separate repo)
-    └── civic-ai-tools-example/  # This project
+    └── civic-ai-tools/  # This project
         └── scripts/
             └── analyze_nyc_data.py  ← YOU ARE HERE
 
@@ -120,7 +120,7 @@ Directory Layout:
     ├── opengov-mcp-server/          # Separate MCP server (also shared)
     │   └── dist/index.js
     │
-    ├── civic-ai-tools-example/      # Example project (THIS)
+    ├── civic-ai-tools/      # Example project (THIS)
     │   ├── .cursor/mcp.json         # References ../civic-ai-tools/
     │   ├── scripts/                 # Project-specific analysis scripts
     │   └── README.md

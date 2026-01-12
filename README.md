@@ -5,8 +5,8 @@ A standalone example for querying NYC Open Data and Google Data Commons using MC
 ## Quick Start
 
 ```bash
-git clone https://github.com/npstorey/civic-ai-tools-example.git
-cd civic-ai-tools-example
+git clone https://github.com/npstorey/civic-ai-tools.git
+cd civic-ai-tools
 ./scripts/setup.sh
 ```
 
