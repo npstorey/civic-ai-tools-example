@@ -70,6 +70,20 @@ This example project was originally designed to work with a sibling `civic-ai-to
 - Add `~/.codex/config.toml` setup instructions for OpenAI Codex CLI
 - Currently only supports Cursor IDE and Claude Code CLI
 
+### Fix opengov-mcp get_data Edge Cases
+
+**Issue 1: `type=metadata` fails**
+- Error: "Query (expected as dataset_id) is required for type=metadata"
+- The tool expects a `query` parameter instead of `dataset_id` for metadata lookups
+- Fix needed in opengov-mcp-server source code
+
+**Issue 2: `type=metrics` returns 404**
+- Error: "API request failed: 404 - Not Found"
+- The Socrata metrics endpoint may not exist or has a different URL
+- Investigate whether this is a Socrata API limitation or implementation bug
+
+**Impact:** Low - these are edge cases. Core functionality (search, fetch, query, catalog) works correctly.
+
 ### Testing
 - Add integration tests that verify MCP servers respond correctly
 - Could run as part of CI after setup
