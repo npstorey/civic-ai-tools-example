@@ -118,6 +118,9 @@ civic-ai-tools/
 ├── .cursor/
 │   ├── mcp.json               # Cursor IDE config (auto-generated, gitignored)
 │   └── mcp.json.example       # Template for Cursor config
+├── .vscode/
+│   ├── mcp.json               # VS Code + Copilot config (gitignored)
+│   └── mcp.json.city-proxy-example  # Template for city workers behind proxy
 ├── .env.example               # API keys template
 ├── .env                       # Your API keys (gitignored)
 ├── docs/
@@ -128,11 +131,38 @@ civic-ai-tools/
 └── CLAUDE.md                  # Claude Code instructions
 ```
 
-**Note:** The `.mcp.json`, `.cursor/mcp.json`, and `.env` files are gitignored because they contain API keys and machine-specific paths.
+**Note:** The `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and `.env` files are gitignored because they contain API keys and machine-specific paths.
 
 ---
 
 ## Tool-Specific Setup
+
+### VS Code with GitHub Copilot (City Workers)
+
+For NYC city employees behind the corporate proxy (`bcpxy.nycnet`):
+
+1. **Build the OpenGov MCP server:**
+   ```powershell
+   cd .mcp-servers/opengov-mcp-server
+   npm install
+   npm install global-agent --save
+   npm run build
+   ```
+
+2. **Copy the proxy wrapper:**
+   ```powershell
+   copy scripts\proxy-wrapper.js .mcp-servers\opengov-mcp-server\
+   ```
+
+3. **Copy and configure MCP settings:**
+   ```powershell
+   copy .vscode\mcp.json.city-proxy-example .vscode\mcp.json
+   ```
+   Edit `.vscode/mcp.json` and replace `YOUR_SOCRATA_TOKEN_HERE` with your token from [NYC Open Data](https://data.cityofnewyork.us/profile/edit/developer_settings).
+
+4. **Reload VS Code** (Ctrl+Shift+P → "Developer: Reload Window")
+
+5. MCP tools should now be available in GitHub Copilot Chat.
 
 ### Cursor IDE
 
@@ -378,8 +408,11 @@ NOT relative paths like:
 | `.mcp.json` | Your MCP config (gitignored) | `setup.sh` auto-generates |
 | `.cursor/mcp.json.example` | MCP config template for Cursor IDE | Committed to repo |
 | `.cursor/mcp.json` | Your Cursor MCP config with absolute paths (gitignored) | `setup.sh` auto-generates |
+| `.vscode/mcp.json.city-proxy-example` | MCP config template for VS Code + Copilot (city workers) | Committed to repo |
+| `.vscode/mcp.json` | Your VS Code MCP config (gitignored) | Copy from example |
 | `.env.example` | API keys template | Committed to repo |
 | `.env` | Your API keys (gitignored) | Copy from `.env.example` |
 | `scripts/setup.sh` | Automated setup script | Committed to repo |
+| `scripts/proxy-wrapper.js` | Proxy bootstrap for city workers behind NTLM proxy | Committed to repo |
 | `docs/opengov-skill.md` | Detailed OpenGov query guidance | Committed to repo |
 | `CLAUDE.md` | Instructions for Claude Code | Committed to repo |

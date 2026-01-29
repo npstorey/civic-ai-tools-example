@@ -1,0 +1,30 @@
+{
+  // VS Code MCP configuration for NYC city workers behind corporate proxy
+  // Copy this file to .vscode/mcp.json and update with your credentials
+  //
+  // Prerequisites:
+  // 1. Run the setup script to build the OpenGov MCP server:
+  //    cd .mcp-servers/opengov-mcp-server && npm install && npm run build
+  // 2. Install global-agent and copy the proxy wrapper:
+  //    npm install global-agent --save
+  //    copy scripts/proxy-wrapper.js .mcp-servers/opengov-mcp-server/
+  // 3. Get your Socrata app token from https://data.cityofnewyork.us/profile/edit/developer_settings
+  //
+  "servers": {
+    "opengov": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/.mcp-servers/opengov-mcp-server/proxy-wrapper.js", "--stdio"],
+      "env": {
+        "DEFAULT_DOMAIN": "data.cityofnewyork.us",
+        "SOCRATA_APP_TOKEN": "YOUR_SOCRATA_TOKEN_HERE",
+        "CACHE_ENABLED": "true",
+        "LOG_LEVEL": "info",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+        "GLOBAL_AGENT_HTTP_PROXY": "http://bcpxy.nycnet:8080",
+        "GLOBAL_AGENT_HTTPS_PROXY": "http://bcpxy.nycnet:8080",
+        "GLOBAL_AGENT_NO_PROXY": "localhost,127.0.0.1"
+      }
+    }
+  }
+}

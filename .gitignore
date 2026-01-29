@@ -4,6 +4,7 @@
 # MCP config files (may contain API keys - use .example files as templates)
 .mcp.json
 .cursor/mcp.json
+.vscode/mcp.json
 
 # Python
 __pycache__/
